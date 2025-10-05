@@ -1,103 +1,162 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { useProjects } from '@/hooks/use-projects';
+import Link from 'next/link';
+import { ProjectResponse } from '@/types/api';
+
+function CreateProjectForm({
+  name,
+  setName,
+  description,
+  setDescription,
+  onSubmit,
+}: {
+  name: string;
+  setName: (name: string) => void;
+  description: string;
+  setDescription: (description: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+      <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium mb-1">
+            Project Name
+          </label>
+          <input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter project name..."
+            required
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium mb-1">
+            Description (optional)
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter project description..."
+            rows={3}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        </div>
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          Create Project
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// Internal component for individual project cards
+function ProjectCard({ project }: { project: ProjectResponse }) {
+  return (
+    <Link
+      href={`/projects/${project.id}`}
+      className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 hover:border-blue-400"
+    >
+      <h2 className="text-xl font-semibold mb-2">{project.name}</h2>
+      {project.description && (
+        <p className="text-gray-600 mb-4 line-clamp-2">
+          {project.description}
+        </p>
+      )}
+      <div className="flex items-center justify-between text-sm text-gray-500">
+        <span>{project.taskCount || 0} tasks</span>
+        <span className="text-blue-600">View →</span>
+      </div>
+    </Link>
+  );
+}
+
+// Main component
+export default function Home() {
+  const { projects, loading, createProject } = useProjects();
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    try {
+      await createProject({ name, description });
+      setName('');
+      setDescription('');
+      setShowForm(false);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading projects...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold">Project Tracker</h1>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            {showForm ? 'Cancel' : 'New Project'}
+          </button>
+        </div>
+
+        {/* Create Project Form */}
+        {showForm && (
+          <CreateProjectForm
+            name={name}
+            setName={setName}
+            description={description}
+            setDescription={setDescription}
+            onSubmit={handleSubmit}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        )}
+
+        {/* Projects List */}
+        {projects.length === 0 ? (
+          <div className="bg-white p-12 rounded-lg shadow-md text-center">
+            <h2 className="text-xl font-semibold mb-2">No projects yet</h2>
+            <p className="text-gray-600 mb-4">
+              Get started by creating your first project
+            </p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Create Project
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
